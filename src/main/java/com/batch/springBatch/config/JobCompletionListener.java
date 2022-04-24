@@ -1,5 +1,6 @@
 package com.batch.springBatch.config;
 
+import com.batch.springBatch.repositories.BtcDataRepository;
 import com.batch.springBatch.repositories.CustomerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +14,11 @@ import org.springframework.stereotype.Component;
 public class JobCompletionListener extends JobExecutionListenerSupport {
     // Creates an instance of the logger
     private static final Logger log = LoggerFactory.getLogger(JobCompletionListener.class);
-    private final CustomerRepository customerRepository;
+    private final BtcDataRepository btcDataRepository;
 
     @Autowired
-    public JobCompletionListener(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    public JobCompletionListener(BtcDataRepository btcDataRepository) {
+        this.btcDataRepository = btcDataRepository;
     }
 
     // The callback method from the Spring Batch JobExecutionListenerSupport class that is executed when the batch process is completed
@@ -26,8 +27,8 @@ public class JobCompletionListener extends JobExecutionListenerSupport {
         // When the batch process is completed the the users in the database are retrieved and logged on the application logs
         if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
             log.info("!!! JOB COMPLETED! verify the results");
-            customerRepository.findAll()
-                    .forEach(person -> log.info("Found (" + person + ">) in the database.") );
+           btcDataRepository.findAll()
+                    .forEach(btcData -> log.info("Found (" + btcData + ">) in the database.") );
         }
     }
 }

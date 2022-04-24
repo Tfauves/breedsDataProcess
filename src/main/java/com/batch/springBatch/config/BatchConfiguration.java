@@ -1,8 +1,11 @@
 package com.batch.springBatch.config;
 
 
+import com.batch.springBatch.domain.BtcData;
 import com.batch.springBatch.domain.Customer;
+import com.batch.springBatch.processor.BtcDataProcessor;
 import com.batch.springBatch.processor.CustomerProcessor;
+import com.batch.springBatch.repositories.BtcDataRepository;
 import com.batch.springBatch.repositories.CustomerRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -13,6 +16,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -34,44 +38,47 @@ public class BatchConfiguration {
 
     @Autowired
     @Lazy
-    public CustomerRepository customerRepository;
+    public BtcDataRepository btcDataRepository;
 
     // Reads the sample-data.csv file and creates instances of the Person entity for each person from the .csv file.
     @Bean
-    public FlatFileItemReader<Customer> reader() {
-        return new FlatFileItemReaderBuilder<Customer>()
-                .name("customerReader")
+    public FlatFileItemReader<BtcData> reader() {
+        return new FlatFileItemReaderBuilder<BtcData>()
+                .name("btcData")
                 .resource(new ClassPathResource("data.csv"))
                 .delimited()
-                .names(new String[]{"firstName", "lastName"})
+                .names(new String[]{"id", "unix_timestamp", "datetime", "open", "high", "low", "close", "volume_btc", "volume_currency", "weighted_price"})
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
-                    setTargetType(Customer.class);
+                    setTargetType(BtcData.class);
                 }})
                 .build();
     }
 
     // Creates the Writer, configuring the repository and the method that will be used to save the data into the database
     @Bean
-    public RepositoryItemWriter<Customer> writer() {
-        RepositoryItemWriter<Customer> iwriter = new RepositoryItemWriter<>();
-        iwriter.setRepository(customerRepository);
+    public RepositoryItemWriter<BtcData> writer() {
+        RepositoryItemWriter<BtcData> iwriter = new RepositoryItemWriter<>();
+        JdbcBatchItemWriter<BtcData> itemWriter = new JdbcBatchItemWriter<>();
+        iwriter.setRepository(btcDataRepository);
+        itemWriter.setSql("INSERT INTO btcdata  VALUES (:id, :unix_timestamp, :datetime, :open, :high, :low, :close, :volume_btc, :volume_currency, :weighted_price)");
+
         iwriter.setMethodName("save");
         return iwriter;
     }
 
-    // Creates an instance of PersonProcessor that converts one data form to another. In our case the data form is maintained.
+    // Creates an instance of BtcDataProcessor that converts one data form to another. In our case the data form is maintained.
     @Bean
-    public CustomerProcessor processor() {
-        return new CustomerProcessor();
+    public BtcDataProcessor processor() {
+        return new BtcDataProcessor();
     }
 
     // Batch jobs are built from steps. A step contains the reader, processor and the writer.
     @Bean
-    public Step step1(ItemReader<Customer> itemReader, ItemWriter<Customer> itemWriter)
+    public Step step1(ItemReader<BtcData> itemReader, ItemWriter<BtcData> itemWriter)
             throws Exception {
 
         return this.stepBuilderFactory.get("step1")
-                .<Customer, Customer>chunk(5)
+                .<BtcData, BtcData>chunk(5)
                 .reader(itemReader)
                 .processor(processor())
                 .writer(itemWriter)
@@ -83,7 +90,7 @@ public class BatchConfiguration {
     public Job customerUpdateJob(JobCompletionListener listener, Step step1)
             throws Exception {
 
-        return this.jobBuilderFactory.get("customerUpdateJob").incrementer(new RunIdIncrementer())
+        return this.jobBuilderFactory.get("btc data job").incrementer(new RunIdIncrementer())
                 .listener(listener).start(step1).build();
     }
 }
