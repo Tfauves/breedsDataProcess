@@ -1,7 +1,7 @@
 package com.batch.springBatch.config;
 
 import com.batch.springBatch.repositories.BtcDataRepository;
-import com.batch.springBatch.repositories.CustomerRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
@@ -24,7 +24,7 @@ public class JobCompletionListener extends JobExecutionListenerSupport {
     // The callback method from the Spring Batch JobExecutionListenerSupport class that is executed when the batch process is completed
     @Override
     public void afterJob(JobExecution jobExecution) {
-        // When the batch process is completed the the users in the database are retrieved and logged on the application logs
+        // When the batch process is completed the data in the database is retrieved and logged on the application logs
         if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
             log.info("!!! JOB COMPLETED! verify the results");
            btcDataRepository.findAll()

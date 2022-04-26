@@ -2,11 +2,8 @@ package com.batch.springBatch.config;
 
 
 import com.batch.springBatch.domain.BtcData;
-import com.batch.springBatch.domain.Customer;
 import com.batch.springBatch.processor.BtcDataProcessor;
-import com.batch.springBatch.processor.CustomerProcessor;
 import com.batch.springBatch.repositories.BtcDataRepository;
-import com.batch.springBatch.repositories.CustomerRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -16,6 +13,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -24,7 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+
+import javax.sql.DataSource;
 
 @Configuration // Informs Spring that this class contains configurations
 @EnableBatchProcessing // Enables batch processing for the application
@@ -40,14 +41,17 @@ public class BatchConfiguration {
     @Lazy
     public BtcDataRepository btcDataRepository;
 
-    // Reads the sample-data.csv file and creates instances of the Person entity for each person from the .csv file.
+    @Autowired
+    DataSource dataSource;
+
+    // Reads the data.csv file and creates instances of the btcData entity for each from the .csv file.
     @Bean
     public FlatFileItemReader<BtcData> reader() {
         return new FlatFileItemReaderBuilder<BtcData>()
-                .name("btcData")
-                .resource(new ClassPathResource("data.csv"))
+                .name("btcDataFileReader")
+                .resource(new ClassPathResource("/data/testBtcData.csv"))
                 .delimited()
-                .names(new String[]{"id", "unix_timestamp", "datetime", "open", "high", "low", "close", "volume_btc", "volume_currency", "weighted_price"})
+                .names(new String[]{"unix_timestamp", "datetime", "open", "high", "low", "close", "volume_btc", "volume_currency", "weighted_price"})
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
                     setTargetType(BtcData.class);
                 }})
@@ -58,13 +62,14 @@ public class BatchConfiguration {
     @Bean
     public RepositoryItemWriter<BtcData> writer() {
         RepositoryItemWriter<BtcData> iwriter = new RepositoryItemWriter<>();
-        JdbcBatchItemWriter<BtcData> itemWriter = new JdbcBatchItemWriter<>();
+//        JdbcBatchItemWriter<BtcData> itemWriter = new JdbcBatchItemWriter<>();
         iwriter.setRepository(btcDataRepository);
-        itemWriter.setSql("INSERT INTO btcdata  VALUES (:id, :unix_timestamp, :datetime, :open, :high, :low, :close, :volume_btc, :volume_currency, :weighted_price)");
+//        itemWriter.setSql("INSERT INTO btc_data  VALUES (:id, :unix_timestamp, :datetime, :open, :high, :low, :close, :volume_btc, :volume_currency, :weighted_price)");
 
         iwriter.setMethodName("save");
         return iwriter;
     }
+
 
     // Creates an instance of BtcDataProcessor that converts one data form to another. In our case the data form is maintained.
     @Bean
@@ -87,7 +92,7 @@ public class BatchConfiguration {
 
     // Executes the job, saving the data from .csv file into the database.
     @Bean
-    public Job customerUpdateJob(JobCompletionListener listener, Step step1)
+    public Job btcDataJob(JobCompletionListener listener, Step step1)
             throws Exception {
 
         return this.jobBuilderFactory.get("btc data job").incrementer(new RunIdIncrementer())
