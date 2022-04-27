@@ -49,4 +49,6 @@ public class BtcData {
     private String weighted_price;
 
 
+    public BtcData(String unix_timestamp, String datetime, String open, String high, String low, String close, String volume_btc, String volume_currency, String weighted_price) {
+    }
 }

@@ -23,7 +23,7 @@ public class BtcDataProcessor implements ItemProcessor<BtcData, BtcData> {
         final String volume_currency = item.getVolume_currency();
         final String weighted_price = item.getWeighted_price();
         // Creates a new instance of btcData
-        final BtcData transformedData = new BtcData(1L, unix_timestamp, datetime, open, high, low, close, volume_btc, volume_currency, weighted_price);
+        final BtcData transformedData = new BtcData(id, unix_timestamp, datetime, open, high, low, close, volume_btc, volume_currency, weighted_price);
         // logs the btcdata entity to the application logs
         logger.info("Converting (" + item + ") into (" + transformedData + ")");
         return transformedData;

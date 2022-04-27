@@ -58,13 +58,14 @@ public class BatchConfiguration {
                 .build();
     }
 
+
     // Creates the Writer, configuring the repository and the method that will be used to save the data into the database
     @Bean
     public RepositoryItemWriter<BtcData> writer() {
         RepositoryItemWriter<BtcData> iwriter = new RepositoryItemWriter<>();
-//        JdbcBatchItemWriter<BtcData> itemWriter = new JdbcBatchItemWriter<>();
+        JdbcBatchItemWriter<BtcData> itemWriter = new JdbcBatchItemWriter<>();
         iwriter.setRepository(btcDataRepository);
-//        itemWriter.setSql("INSERT INTO btc_data  VALUES (:id, :unix_timestamp, :datetime, :open, :high, :low, :close, :volume_btc, :volume_currency, :weighted_price)");
+        itemWriter.setSql("INSERT INTO btc_data  VALUES (:id, :unix_timestamp, :datetime, :open, :high, :low, :close, :volume_btc, :volume_currency, :weighted_price)");
 
         iwriter.setMethodName("save");
         return iwriter;
