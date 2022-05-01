@@ -56,7 +56,6 @@ public class BatchConfiguration {
                 .build();
     }
 
-
     // Creates the Writer, configuring the repository and the method that will be used to save the data into the database
     @Bean
     public RepositoryItemWriter<BtcData> writer() {
@@ -68,7 +67,6 @@ public class BatchConfiguration {
         iwriter.setMethodName("save");
         return iwriter;
     }
-
 
     // Creates an instance of BtcDataProcessor that converts one data form to another. In our case the data form is maintained.
     @Bean
